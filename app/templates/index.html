@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GestureSmart-serve</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/style.css')}}">
+    </link>
+</head>
+
+<body>
+
+    <div class="AddComandsBlock">
+        <input type="text" placeholder="commands" class="InputCommands"/>
+        <button onclick="AddCommand()">Add</button>
+
+        <div class="Comands">
+        </div>
+    </div>
+
+    <main>
+        <h1>GestureSmart-serve</h1>
+
+        <div class="AddSites">
+            <label for="AddSitesLabel">Add sites</label>
+            <input type="text" name="AddSitesLabel" placeholder="Sites" id="inputData" />
+            <button onclick="addUrl()">Add</button>
+        </div>
+
+        <div class="Urls text_url">
+
+        </div>
+
+        <div class="Search_MD_GESTURE_PAJ">
+            <span>Search MD_GESTURE_PAJ</span>
+            <button onclick="search()">Search</button>
+        </div>
+
+        <div class="MD_GESTURE_PAJ text_url">
+
+
+        </div>
+
+    </main>
+    <script src="https://cdn.socket.io/4.1.2/socket.io.min.js"></script>
+    <script src="{{ url_for('static', filename='scripts/script.js')}}"></script>
+
+</body>
+
+</html>

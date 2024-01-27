@@ -1,0 +1,108 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
+
+body{
+    background-color: #66A5AD;
+    font-family: 'Roboto';
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    overflow: hidden;
+}
+.AddComandsBlock{
+    position: absolute;
+    width: 220px;
+    margin: auto;
+    left: calc(50vw - 120px);
+    z-index: 1;
+    top: -30%;
+    background-color: #C4DFE6;
+    padding: 10px;
+
+    border-radius: 15px;
+
+    transition: top 1s;
+
+}
+
+.AddComandsBlockActive{
+    top: 30%;
+}
+.Comands{
+    display: flex;
+    flex-direction: column;
+    margin-top: 5px;
+}
+
+main{
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.mainActive{
+    opacity: 0.5;
+    background-color: black;
+}
+
+h1{
+    color: #07575B;
+}
+.AddSites{
+    color: #07575B;
+}
+input{
+    border:none;
+    border-radius: 3px;
+    outline:none;
+    color: #66A5AD;
+}
+input::placeholder{
+    color: #66A5AD;
+}
+
+button{
+    border:none;
+    border-radius: 5px;
+    background-color: #79becf;
+    color:#07575B;
+
+}
+.text_url{
+    width: 276px;
+    margin-top: 10px;
+    color: #224042;
+}
+
+.text_url>span{
+    color: #003B46;
+    font-weight: bolder;
+}
+
+.remove_url{
+    background: none;
+}
+.command_btn{
+    background: none;
+}
+.command_btn>img{
+    width: 24px;
+}
+.url_block{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.Search_MD_GESTURE_PAJ{
+    width: 276px;
+
+}
+.Search_MD_GESTURE_PAJ>span{
+    color: #07575B;
+    margin-right: 10px;
+}
+/* #003B46 */
+/* #07575B */
+/* #66A5AD */
+/* #C4DFE6 */
