@@ -106,3 +106,49 @@ button{
 /* #07575B */
 /* #66A5AD */
 /* #C4DFE6 */
+
+.ModeCheck{
+    display: flex;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+.ModeCheck>div{
+    display: flex;
+    align-items: center;
+    color: #07575B;
+
+}
+
+input[type="radio"] {
+    appearance: none;
+    background-color: #fff;
+    font: inherit;
+    color: currentColor;
+    width: 13px;
+    height: 13px;
+    margin: 3px;
+    border: 0.15em solid currentColor;
+    border-radius: 50%;
+    margin-top: 5px;
+  }
+
+input[type="radio"]::before {
+    display: block;
+    content: "";
+    width: 6px;
+    height: 6px;
+    transform: scale(0);
+    background-color: #003B46;
+    margin-top: 1px;
+    margin-left: 1px;
+    border-radius: 50%;
+
+    transition: 120ms transform ease-in-out;
+}
+  
+input[type="radio"]:checked::before {
+    transform: scale(1);
+}
+.Urls{
+    margin-top: 0;
+}

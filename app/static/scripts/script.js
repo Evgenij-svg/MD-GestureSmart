@@ -1,14 +1,25 @@
 
-let urls_clients = [];
-let urls_PAJ = [];
+
 
 let curentOBJ = {};
+
+let urls = {
+    "clients":{
+        "socket":[],
+        "tcp":[],
+        "post":[],
+        "get":[],
+    },
+    "paj":[]
+}
+
+let urls_clients = urls['clients'];
+
 
 function AddCommand(){
     const InputCommands = document.querySelector(".InputCommands");
     curentOBJ['commands'].push(InputCommands.value);
-    send_add_command(curentOBJ['nameUrl'],InputCommands.value)
-
+    send_add_command(curentOBJ['id'],InputCommands.value,curentOBJ['_request'])
     const Comands = document.querySelector(".Comands");
     const Command = document.createElement("span");
     Command.innerText = InputCommands.value
@@ -19,25 +30,24 @@ function AddCommand(){
 
 }
 
-function send_add_command(name_url,command){
+function send_add_command(id_url,command,_request){
 
     fetch('/add_command', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: 'name_url=' + encodeURIComponent(name_url.split('/')[2]) + '&command=' + encodeURIComponent(command),
+        body: 'id_url=' + encodeURIComponent(id_url) + '&command=' + encodeURIComponent(command) + '&_request=' + encodeURIComponent(_request),
     })
 }
 
-
-function remove_url_block_from_serv(name_url){
+function remove_url_block_from_serv(id_url,_request){
     fetch('/remove_url', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: 'name_url=' + encodeURIComponent(name_url),
+        body: 'id_url=' + encodeURIComponent(id_url) + '&_request=' + encodeURIComponent(_request),
     })
 }
 
@@ -83,23 +93,23 @@ function create_command_button(addCommandFunc){
     return command_btn;
 }
 
-function create_url_client_block(url_block_client){
-    const Name_url =  url_block_client['nameUrl'].split('/')[2]
-
+function create_url_client_block(url_block_client,_request){
+    const Name_url =  url_block_client['nameUrl'];
 
     const deleteUrlClient = function(){
-        urls_clients = urls_clients.filter(
-            (elem_remove) => elem_remove['nameUrl'].split('/')[2] != url_block_client['nameUrl'].split('/')[2]        
+        urls_clients[_request] = urls_clients[_request].filter(
+            (elem_remove) => elem_remove['id'] != url_block_client['id']    
         );
         Client_url.remove();
-        remove_url_block_from_serv(url_block_client['nameUrl'].split('/')[2])
+        remove_url_block_from_serv(url_block_client['id'],_request)
     }
 
     const addCommadUrlClient = function(event){
-        curentOBJ = urls_clients.filter(
-            (elem) => elem['nameUrl'].split('/')[2] == url_block_client['nameUrl'].split('/')[2]        
+        curentOBJ = urls_clients[_request].filter(
+            (elem) => elem['id'] == url_block_client['id']    
         )[0];
-
+        
+        curentOBJ['_request'] = _request;
         document.querySelector(".AddComandsBlock").classList.add("AddComandsBlockActive");
         document.querySelector("main").classList.add("mainActive");
 
@@ -132,7 +142,7 @@ function create_url_client_block(url_block_client){
 
 function create_url_PAJ_block(IP_PAJ){
     const deleteUrlPAJ = function(){
-        urls_PAJ = urls_PAJ.filter(
+        urls['paj'] = urls['paj'].filter(
             (elem_remove) => elem_remove != IP_PAJ        
         );
         PAJ_url.remove();
@@ -146,12 +156,23 @@ function create_url_PAJ_block(IP_PAJ){
 }
 
 function RenderUrls(){
-    Urls=document.querySelector(".Urls");
-    urls_clients.forEach((elem)=>{
-        block_url = create_url_client_block(elem)
-        Urls.appendChild(block_url);
+    const Get_dom=document.querySelector(".Get");
+    urls_clients['get'].forEach((elem)=>{
+        block_url = create_url_client_block(elem,'get')
+        Get_dom.appendChild(block_url);
     })
-    
+
+    const Post_dom=document.querySelector(".Post");
+    urls_clients['post'].forEach((elem)=>{
+        block_url = create_url_client_block(elem,'post')
+        Post_dom.appendChild(block_url);
+    })
+
+    const Socket_dom=document.querySelector(".Socket");
+    urls_clients['socket'].forEach((elem)=>{
+        block_url = create_url_client_block(elem,'socket')
+        Socket_dom.appendChild(block_url);
+    })
 }
 
 function getData(){
@@ -163,40 +184,60 @@ function getData(){
     })
     .then(response => response.text())
     .then(data => {    
-        urls_clients.splice(0, urls_clients.length);
+        Object.keys(urls).forEach(item => delete urls[item]);
         const temp = JSON.parse(data)
-        urls_clients = [...temp]
+        urls = {...temp}
+        urls_clients = urls['clients']
         RenderUrls()
-        console.log(urls_clients)
+        console.log(urls)
     })
 }
 getData()
 
 function addUrl() {
     let inputData = document.querySelector('#inputData').value;
-
+    const id_url = Date.now();
+    let _request = ''
+    let radioButtons = document.getElementsByName('request_');
+    for (let i = 0; i < radioButtons.length; i++) {
+        if (radioButtons[i].checked) {
+            _request = radioButtons[i].value;
+            break;
+        }
+    }
     // Используем Fetch API
     fetch('/add_urls', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: 'input_data=' + encodeURIComponent(inputData),
+        body: 'url=' + encodeURIComponent(inputData) + '&id_url=' + encodeURIComponent(id_url) +'&_request=' +encodeURIComponent(_request),
     })
     .then(response => response.text())
     .then(data => {
         if(data == "True"){
-            url = 'http://' + inputData + '/Gesture_data'
+            // url = 'http://' + inputData + '/Gesture_data'
             url_client = {
-                'nameUrl':url,
-                'commands':[]
+                'nameUrl':inputData,
+                'commands':[],
+                'id':id_url
             };
-            urls_clients.push(url_client);
-            console.log(inputData);
 
-            const url_client_block = create_url_client_block(url_client);
-            const Urls=document.querySelector(".Urls");
-            Urls.appendChild(url_client_block);
+
+            urls_clients[_request].push(url_client);
+
+            console.log(urls_clients);
+
+            const url_client_block = create_url_client_block(url_client,_request);
+
+            let UrlBlock=document.querySelector(".Get");
+            if(_request === 'post'){
+                UrlBlock=document.querySelector(".Post");
+            }else{
+                UrlBlock=document.querySelector(".Socket");
+            }
+            UrlBlock.appendChild(url_client_block);
+
 
         }
     })
@@ -208,7 +249,8 @@ const socket = io.connect('http://192.168.0.14:5000'); // Adjust the URL accordi
 socket.on('esp_ip_update', function (data) {
     console.log('Received update:', data);
     const url_PAJ_block = create_url_PAJ_block(data);
-    urls_clients.push(data);
+    urls['paj'].push(data);
+
     const MD_GESTURE_PAJ = document.querySelector(".MD_GESTURE_PAJ");
     MD_GESTURE_PAJ.appendChild(url_PAJ_block);
     // Process data from the server

@@ -10,51 +10,58 @@ from flask_socketio import SocketIO
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*")  # Разрешить соединения со всех источников
 
+urls = {
+    "clients":{
+        "socket":[],
+        "tcp":[],
+        "post":[],
+        "get":[],
+    },
+    "paj":[]
+}
 
-urls = []
-esp_ip_list = []
+urls_clients = urls['clients']
+# esp_ip_list = []
 
 thread_finished = False
 
+import ipaddress
+import requests
+
 def validate_ip(IpAdress):
     result = IpAdress.split(':')
-    Ip = ''
-    Port = ''
-    if(len(result) >= 3):
+
+    if len(result) >= 3:
         return False
-    elif(len(result) == 2):
-        Ip = result[0]
-        Port = result[1]
-        if((not Port.isdigit()) or (not (len(Port) == 4))):
+    elif len(result) == 2:
+        Ip, Port = result
+        if not (Port.isdigit() and len(Port) == 4):
             return False
-    elif(len(result) == 1):
+    elif len(result) == 1:
         Ip = result[0]
-        
+
     try:
-        print(Ip)
         ipaddress.ip_address(Ip)
     except ValueError:
         return False
 
-    url = 'http://' + IpAdress + '/Gesture_data'
+    url = f'http://{IpAdress}/Gesture_data'
     data = {'gestures': 'Tests'}
+
     try:
         response = requests.post(url, data=data)
-    except requests.exceptions.ConnectionError:
+        response.raise_for_status()  # Проверка на ошибку в HTTP-ответе
+        print("Data successfully sent to Server")
+        return True
+    except (requests.exceptions.RequestException, ipaddress.AddressValueError):
         return False
-
-    if response.status_code == 200:
-        print("Data successfully sent to Serve")
-    else:
-        return False
-
-    return True
 
 def send_to_servers(command_ges):
-    for elem in urls:
+    for elem in urls_clients['post']:
         for command in elem['commands']:
             if(command == command_ges):
-                requests.post(elem['nameUrl'], data={'gestures': command_ges})
+                urls_send = 'http://' + elem['nameUrl'] + '/Gesture_data'
+                requests.post(urls_send, data={'gestures': command_ges})
 
 def find_esp_ip_gesture():
     global thread_finished
@@ -80,7 +87,7 @@ def find_esp_ip_gesture():
             # Проверяем, что ответ содержит ожидаемую строку
             if "ESP_OK" in response.decode("utf-8"):
                 print(f"Found ESP at IP: {target_ip}")
-                esp_ip_list.append(target_ip)
+                urls['paj'].append(target_ip)
                 socketio.emit('esp_ip_update', target_ip)
 
 
@@ -101,15 +108,19 @@ def Get_gesture_GestureSmart():
 @app.route('/add_urls', methods=['POST'])
 def add_urls():
     global urls
-    data = request.form['input_data']
+    data = request.form['url']
+    id_url = request.form['id_url']
+    _request = request.form['_request']
+    print(data)
     if(validate_ip(data)):
-        url = 'http://' + data + '/Gesture_data'
+        # url = 'http://' + data + '/Gesture_data'
         url_command = {
-            'nameUrl':url,
-            'commands':[]
+            'nameUrl':data,
+            'commands':[],
+            'id':int(id_url)
         }
-        if not any(d['nameUrl'] == url_command['nameUrl'] for d in urls):
-            urls.append(url_command)
+        if not any(d['nameUrl'] == url_command['nameUrl'] for d in urls_clients[_request]):
+            urls_clients[_request].append(url_command)
             return "True"
 
         return "False"
@@ -122,10 +133,11 @@ def getdata():
 
 @app.route('/remove_url',methods=['POST'])
 def remove_url():
-    data = request.form['name_url']
-    for elem in urls:
-        if(elem['nameUrl'].split('/')[2] == data):
-            urls.pop(urls.index(elem))
+    data = request.form['id_url']
+    _request = request.form['_request']
+    for elem in urls_clients[_request]:
+        if(elem['id'] == int(data)):
+            urls_clients[_request].pop(urls_clients[_request].index(elem))
     return "Ok"
 
 @app.route('/Search_MD_GESTURE_PAJ', methods=['POST'])
@@ -133,9 +145,9 @@ def Search_MD_GESTURE_PAJ():
     # thread = threading.Thread(target=find_esp_ip_gesture)
     # thread.start()
     # thread.join()  # Wait for the thread to finish
-    esp_ip_list = []  # Создаем новый список для каждого запроса
+    urls['paj'] = []  # Создаем новый список для каждого запроса
     find_esp_ip_gesture()
-    return json.dumps(esp_ip_list)
+    return json.dumps(urls['paj'])
 
 @app.route('/DataGesPAJ', methods=['POST'])
 def DataGesPAJ():
@@ -149,11 +161,12 @@ def DataGesPAJ():
 @app.route('/add_command', methods=['POST'])
 def add_command():
     data = request.form
-    name = data['name_url']
+    id_url = data['id_url']
     command = data['command']
+    _request = data['_request']
     # print(name + " " + command)
-    for elem in urls:
-        if(elem['nameUrl'].split('/')[2] == name):
+    for elem in urls_clients[_request]:
+        if(elem['id'] == int(id_url)):
             elem['commands'].append(command)
 
     print(json.dumps(urls))
@@ -174,3 +187,32 @@ if __name__ == '__main__':
     socketio.run(app, host=host, port=port)
 
 
+
+
+
+
+
+# import asyncio
+# import websockets
+
+# ESP_IP_ADDRESSES = ["192.168.1.100", "192.168.1.101", "192.168.1.102"]  # Замените этим своим списком IP-адресов ESP
+
+# async def connect_to_esp(ip):
+#     uri = f"ws://{ip}/your_websocket_path"  # Замените "your_websocket_path" на реальный путь WebSocket на вашем ESP
+
+#     try:
+#         async with websockets.connect(uri) as websocket:
+#             print(f"Connected to ESP at {ip}")
+#             # Вы можете здесь отправлять и принимать сообщения по WebSocket
+#             # Например: await websocket.send("Hello, ESP!")
+#             #         response = await websocket.recv()
+#             #         print(f"Received from ESP: {response}")
+#     except websockets.exceptions.ConnectionError:
+#         print(f"Failed to connect to ESP at {ip}")
+
+# async def main():
+#     tasks = [connect_to_esp(ip) for ip in ESP_IP_ADDRESSES]
+#     await asyncio.gather(*tasks)
+
+# if __name__ == "__main__":
+#     asyncio.run(main())

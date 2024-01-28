@@ -14,7 +14,6 @@
     <div class="AddComandsBlock">
         <input type="text" placeholder="commands" class="InputCommands"/>
         <button onclick="AddCommand()">Add</button>
-
         <div class="Comands">
         </div>
     </div>
@@ -26,9 +25,33 @@
             <label for="AddSitesLabel">Add sites</label>
             <input type="text" name="AddSitesLabel" placeholder="Sites" id="inputData" />
             <button onclick="addUrl()">Add</button>
+        
+            <div class="ModeCheck">
+                <div>
+                    <input type="radio" id="get" name="request_" value="get" checked />
+                    <label for="get">get</label>
+                  </div>
+                
+                  <div>
+                    <input type="radio" id="post" name="request_" value="post" />
+                    <label for="post">post</label>
+                  </div>
+                
+                  <div>
+                    <input type="radio" id="socket" name="request_" value="socket" />
+                    <label for="socket">socket</label>
+                  </div>
+            </div>
+
         </div>
 
+
+
         <div class="Urls text_url">
+            <div class="Get"></div>
+            <div class="Post"></div>
+            <div class="Socket"></div>
+
 
         </div>
 
