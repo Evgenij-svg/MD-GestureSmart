@@ -36,7 +36,7 @@ class MainGesture(QtWidgets.QMainWindow):
         window_icon = QtGui.QIcon("./icon/smarthouse.png")
         self.setWindowIcon(window_icon)
 
-        self.cap = cv2.VideoCapture(0)
+        self.cap = cv2.VideoCapture(2)
 
         self.hands = mp.solutions.hands.Hands(static_image_mode=False,
                                  max_num_hands=1,
