@@ -6,6 +6,11 @@ import socket
 import threading
 from flask import Flask, request, jsonify, render_template
 from flask_socketio import SocketIO
+import time
+ 
+
+
+
 
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*")  # Разрешить соединения со всех источников
@@ -87,8 +92,17 @@ def find_esp_ip_gesture():
             # Проверяем, что ответ содержит ожидаемую строку
             if "ESP_OK" in response.decode("utf-8"):
                 print(f"Found ESP at IP: {target_ip}")
-                urls['paj'].append(target_ip)
-                socketio.emit('esp_ip_update', target_ip)
+                
+                milliseconds = int(round(time.time() * 1000))
+                # print(milliseconds)
+
+                dataPaj={
+                    'ipPaj':target_ip,
+                    'id':milliseconds
+                }
+
+                urls['paj'].append(dataPaj)
+                socketio.emit('esp_ip_update', json.dumps(dataPaj))
 
 
         except socket.error as e:
@@ -140,12 +154,17 @@ def remove_url():
             urls_clients[_request].pop(urls_clients[_request].index(elem))
     return "Ok"
 
+@app.route('/remove_url_paj',methods=['POST'])
+def remove_url_paj():
+    id_paj = request.form['id_paj']
+    for elem in urls['paj']:
+        if(elem['id'] == int(id_paj)):
+            urls['paj'].pop(urls['paj'].index(elem))
+    return "Ok"
+
 @app.route('/Search_MD_GESTURE_PAJ', methods=['POST'])
 def Search_MD_GESTURE_PAJ():
-    # thread = threading.Thread(target=find_esp_ip_gesture)
-    # thread.start()
-    # thread.join()  # Wait for the thread to finish
-    urls['paj'] = []  # Создаем новый список для каждого запроса
+    # urls['paj'] = [] 
     find_esp_ip_gesture()
     return json.dumps(urls['paj'])
 
@@ -169,7 +188,6 @@ def add_command():
         if(elem['id'] == int(id_url)):
             elem['commands'].append(command)
 
-    print(json.dumps(urls))
     return jsonify({'success': True})
 
 @app.route('/')

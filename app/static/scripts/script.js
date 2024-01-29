@@ -1,6 +1,3 @@
-
-
-
 let curentOBJ = {};
 
 let urls = {
@@ -18,13 +15,32 @@ let urls_clients = urls['clients'];
 
 function AddCommand(){
     const InputCommands = document.querySelector(".InputCommands");
-    curentOBJ['commands'].push(InputCommands.value);
-    send_add_command(curentOBJ['id'],InputCommands.value,curentOBJ['_request'])
+
+    const valueInputCommands = InputCommands.value;
+    InputCommands.value = '';
+
+    curentOBJ['commands'].push(valueInputCommands);
+    send_add_command(curentOBJ['id'],valueInputCommands,curentOBJ['_request'])
     const Comands = document.querySelector(".Comands");
-    const Command = document.createElement("span");
-    Command.innerText = InputCommands.value
+    const Command = document.createElement("div");
+    const Command_name =  document.createElement("span");
+    Command_name.innerText = valueInputCommands;
+
+
+    const Command_delete_btn_func = function(){
+        const index = curentOBJ['commands'].indexOf(valueInputCommands);
+        curentOBJ['commands'].splice(index, 1);
+        Command.remove();
+
+    }
+    const Command_delete_btn =  create_delete_button(Command_delete_btn_func);
+
+
+    Command.append(Command_name);
+    Command.append(Command_delete_btn);
+
     Comands.append(Command);
-    InputCommands.value = "";
+    // InputCommands.value = "";
 
     
 
@@ -48,6 +64,16 @@ function remove_url_block_from_serv(id_url,_request){
             'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: 'id_url=' + encodeURIComponent(id_url) + '&_request=' + encodeURIComponent(_request),
+    })
+}
+
+function remove_url_paj_block_from_serv(id_paj){
+    fetch('/remove_url_paj', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'id_paj=' + encodeURIComponent(id_paj),
     })
 }
 
@@ -140,17 +166,17 @@ function create_url_client_block(url_block_client,_request){
     return Client_url
 }
 
-function create_url_PAJ_block(IP_PAJ){
+function create_url_PAJ_block(PAJ_block){
     const deleteUrlPAJ = function(){
         urls['paj'] = urls['paj'].filter(
-            (elem_remove) => elem_remove != IP_PAJ        
+            (elem_remove) => elem_remove['id'] != PAJ_block['id']       
         );
         PAJ_url.remove();
-        // remove_url_block_from_serv(url_block_client['nameUrl'].split('/')[2])
+        remove_url_paj_block_from_serv(PAJ_block['id'])
     }
 
     const delete_button = create_delete_button(deleteUrlPAJ)
-    const PAJ_url = create_url_block(IP_PAJ, delete_button)
+    const PAJ_url = create_url_block(PAJ_block['ipPaj'], delete_button)
     
     return PAJ_url
 }
@@ -243,13 +269,13 @@ function addUrl() {
     })
 }
 
-
 const socket = io.connect('http://192.168.0.14:5000'); // Adjust the URL accordingly
 
 socket.on('esp_ip_update', function (data) {
-    console.log('Received update:', data);
-    const url_PAJ_block = create_url_PAJ_block(data);
-    urls['paj'].push(data);
+    const _data = JSON.parse(data)
+    console.log('Received update:',  _data);
+    const url_PAJ_block = create_url_PAJ_block(_data);
+    urls['paj'].push(_data);
 
     const MD_GESTURE_PAJ = document.querySelector(".MD_GESTURE_PAJ");
     MD_GESTURE_PAJ.appendChild(url_PAJ_block);
