@@ -183,12 +183,31 @@ def add_command():
     id_url = data['id_url']
     command = data['command']
     _request = data['_request']
+    id_command = data['id_command']
     # print(name + " " + command)
     for elem in urls_clients[_request]:
         if(elem['id'] == int(id_url)):
-            elem['commands'].append(command)
+            elem['commands'].append({'id':id_command,
+                                     'name': command
+                                     })
 
     return jsonify({'success': True})
+
+@app.route('/remove_command', methods=['POST'])
+def remove_command():
+    data = request.form
+    id_url = data['id_url']
+    _request = data['_request']
+    id_command = data['id_command']
+    
+    for elem in urls_clients[_request]:
+        if int(elem['id']) == int(id_url):
+            commands = elem['commands']
+            print(commands)
+            commands = [e for e in commands if e['id'] != id_command]
+            elem['commands'] = commands
+            break
+    return "Ok"   
 
 @app.route('/')
 def start():
